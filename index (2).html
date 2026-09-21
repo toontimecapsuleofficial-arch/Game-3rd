@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>STACK TOWER — hand-drawn edition</title>
+<script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='6' y='20' width='20' height='6' rx='2' fill='%23e2694f' stroke='%233b3230' stroke-width='2'/%3E%3Crect x='9' y='13' width='14' height='6' rx='2' fill='%23f0a03c' stroke='%233b3230' stroke-width='2'/%3E%3Crect x='11' y='6' width='10' height='6' rx='2' fill='%239fdc8f' stroke='%233b3230' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="wob"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3"/></filter>
+</svg>
+<div id="boot"><div class="boot-stack"><i></i><i></i><i></i><i></i></div><div id="bootMsg">drawing the tower…</div></div>
+<noscript><div style="position:fixed;inset:0;background:#f7efe0;z-index:999;display:flex;align-items:center;justify-content:center;font-family:sans-serif">STACK TOWER needs JavaScript to run.</div></noscript>
+<div id="app">
+  <canvas id="game"></canvas>
+  <div id="paperFx" class="fx-plain"></div>
+
+  <div id="hud">
+    <div class="hud-main hpanel r1">
+      <div class="hlab">FLOOR</div><div id="hFloor">0</div><div class="hsub" id="hScore">SCORE 0</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-coins hpanel r2"><span class="coinIc"></span><span id="hCoins">0</span></div>
+      <div class="hud-lives hpanel r2" id="hLives"><span class="lv">&#9829;</span><span class="lv">&#9829;</span><span class="lv">&#9829;</span></div>
+      <button id="btnPause" class="icbtn" aria-label="pause"><i class="icw" data-ic="pause"></i></button>
+    </div>
+  </div>
+  <div id="comboWrap"><div id="comboPill">COMBO ×2</div><div id="comboMeter"><i id="comboFill"></i></div></div>
+  <div id="chalChip"></div>
+  <div id="banner"></div>
+  <div id="toast"></div>
+  <div id="achPop"></div>
+
+  <div id="tut">
+    <div class="tut-bubble" id="tutBubble"></div>
+    <div class="tut-hand"><i class="icw" data-ic="hand"></i></div>
+  </div>
+
+  <!-- MAIN MENU -->
+  <div class="screen on" id="scr-menu">
+    <div class="menu-wrap">
+      <div class="t-line t1" id="titleStack"></div>
+      <svg class="squig" viewBox="0 0 300 20"><path d="M5 12 Q 30 2 55 11 T 105 11 T 155 11 T 205 11 T 255 11 T 295 10" fill="none" stroke="#e2694f" stroke-width="4" stroke-linecap="round"/></svg>
+      <div class="t-line t2" id="titleTower"></div>
+      <div class="subtitle">a hand-drawn stacking game</div>
+      <div class="prev-panel r1"><canvas id="prevCv" width="420" height="300"></canvas></div>
+      <button id="btnPlay" class="hbtn primary big"><i class="icw" data-ic="play"></i>PLAY</button>
+      <div class="btn-row">
+        <button id="btnShop" class="hbtn"><i class="icw" data-ic="cart"></i>SHOP</button>
+        <button id="btnWorlds" class="hbtn"><i class="icw" data-ic="globe"></i>WORLDS</button>
+        <button id="btnQuests" class="hbtn"><i class="icw" data-ic="target"></i>QUESTS</button>
+      </div>
+      <div class="btn-row">
+        <button id="btnAch" class="hbtn"><i class="icw" data-ic="trophy"></i>GOALS</button>
+        <button id="btnSettings" class="hbtn"><i class="icw" data-ic="gear"></i>SETUP</button>
+      </div>
+      <div class="meta-row">
+        <div class="meta-chip"><span class="coinIc"></span><span class="coinVal">0</span></div>
+        <div class="meta-chip">BEST&nbsp;<b id="mBest">0</b></div>
+        <button id="btnDaily" class="meta-chip giftbtn"><i class="icw" data-ic="gift"></i><span id="dailyLbl">DAY 1</span><i class="badge"></i></button>
+      </div>
+      <div class="credit">tap to stack the blocks — don't miss!</div>
+    </div>
+  </div>
+
+  <!-- PAUSE -->
+  <div class="screen scrim" id="scr-pause">
+    <div class="menu-wrap">
+      <div class="res-title">PAUSED</div>
+      <div class="meta-chip">FLOOR&nbsp;<b id="pFloor">0</b></div>
+      <button id="btnResume" class="hbtn primary big"><i class="icw" data-ic="play"></i>RESUME</button>
+      <div class="btn-row">
+        <button id="btnRestartP" class="hbtn"><i class="icw" data-ic="redo"></i>RESTART</button>
+        <button id="btnHomeP" class="hbtn"><i class="icw" data-ic="home"></i>HOME</button>
+      </div>
+      <button id="btnPsound" class="hbtn tiny">SOUND: ON</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen scrim" id="scr-result">
+    <div class="menu-wrap">
+      <div class="res-title" id="resTitle">TOWER TOPPLED!</div>
+      <div class="res-stamp" id="resStamp">NEW RECORD!</div>
+      <div class="res-box panel r2">
+        <div class="res-big"><span id="rH">0</span><small>FLOORS HIGH</small></div>
+        <div class="res-row cmp" style="animation-delay:.1s"><span>Best tower</span><b id="rCmp">0</b></div>
+        <div class="res-row" style="animation-delay:.18s"><span>Score</span><b id="rS">0</b></div>
+        <div class="res-row" style="animation-delay:.26s"><span>Coins earned</span><b id="rC">0</b></div>
+        <div class="res-row" style="animation-delay:.34s"><span>Perfect drops</span><b id="rP">0</b></div>
+        <div class="res-row" style="animation-delay:.42s"><span>Best combo</span><b id="rK">0</b></div>
+        <div class="res-row" style="animation-delay:.5s"><span>Accuracy</span><b id="rAcc">0%</b></div>
+        <div class="res-row" style="animation-delay:.58s"><span>Perfect rate</span><b id="rPR">0%</b></div>
+        <div class="res-chal hidden" id="rChal"></div>
+      </div>
+      <button id="btnAgain" class="hbtn primary big"><i class="icw" data-ic="redo"></i>PLAY AGAIN</button>
+      <button id="btnDouble" class="hbtn cg-double hidden"><b>+2x</b> DOUBLE COINS — WATCH AD</button>
+      <div class="btn-row">
+        <button id="btnHomeR" class="hbtn"><i class="icw" data-ic="home"></i>HOME</button>
+        <button id="btnShopR" class="hbtn"><i class="icw" data-ic="cart"></i>SHOP</button>
+      </div>
+      <div class="res-hint">…or tap anywhere / press R to jump right back in!</div>
+    </div>
+  </div>
+
+  <!-- SHOP -->
+  <div class="screen" id="scr-shop">
+    <div class="scr-head">
+      <button class="icbtn backBtn" data-go="menu" aria-label="back"><i class="icw" data-ic="back"></i></button>
+      <div class="scr-title">SHOP</div>
+      <div class="scr-coins"><span class="coinIc"></span><span class="coinVal">0</span></div>
+    </div>
+    <div class="tabs" id="shopTabs"></div>
+    <div class="colbar" id="colBar"><div class="lbl"><span>COLLECTION</span><span id="colTxt">0 / 0</span></div><div class="track"><i id="colFill"></i></div></div>
+    <div class="scroll" id="shopScroll"><div class="grid" id="shopGrid"></div></div>
+  </div>
+
+  <!-- WORLDS -->
+  <div class="screen" id="scr-worlds">
+    <div class="scr-head">
+      <button class="icbtn backBtn" data-go="menu" aria-label="back"><i class="icw" data-ic="back"></i></button>
+      <div class="scr-title">WORLDS</div>
+      <div class="scr-coins"><span class="coinIc"></span><span class="coinVal">0</span></div>
+    </div>
+    <div class="scroll"><div class="grid" id="worldGrid"></div></div>
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div class="screen" id="scr-ach">
+    <div class="scr-head">
+      <button class="icbtn backBtn" data-go="menu" aria-label="back"><i class="icw" data-ic="back"></i></button>
+      <div class="scr-title">GOALS</div>
+      <div class="scr-coins"><span class="coinIc"></span><span class="coinVal">0</span></div>
+    </div>
+    <div class="scroll"><div id="achList"></div></div>
+  </div>
+
+  <!-- QUESTS -->
+  <div class="screen" id="scr-quests">
+    <div class="scr-head">
+      <button class="icbtn backBtn" data-go="menu" aria-label="back"><i class="icw" data-ic="back"></i></button>
+      <div class="scr-title">QUESTS</div>
+      <div class="scr-coins"><span class="coinIc"></span><span class="coinVal">0</span></div>
+    </div>
+    <div class="scroll" id="questScroll"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="scr-settings">
+    <div class="scr-head">
+      <button class="icbtn backBtn" data-go="menu" aria-label="back"><i class="icw" data-ic="back"></i></button>
+      <div class="scr-title">SETUP</div>
+      <div class="scr-coins"><span class="coinIc"></span><span class="coinVal">0</span></div>
+    </div>
+    <div class="scroll"><div class="set-wrap">
+      <div class="set-row"><i class="icw" data-ic="sndOn"></i><span class="lbl">Sound</span><button id="btnSound" class="hbtn tiny">ON</button></div>
+      <div class="set-row"><i class="icw" data-ic="mus"></i><span class="lbl">Music</span><button id="btnMusic" class="hbtn tiny">ON</button></div>
+      <div class="set-row"><i class="icw" data-ic="vib"></i><span class="lbl">Haptics (mobile buzz)</span><button id="btnHapt" class="hbtn tiny">ON</button></div>
+      <div class="set-row"><i class="icw" data-ic="spark"></i><span class="lbl">Fancy effects <small style="display:block;font-weight:normal;font-size:11px;color:var(--ink2)">(turn off for reduced motion + low-end phones)</small></span><button id="btnFx" class="hbtn tiny">ON</button></div>
+      <div class="set-row"><i class="icw" data-ic="trash"></i><span class="lbl">Reset progress</span><button id="btnReset" class="hbtn tiny danger">RESET</button></div>
+      <div class="stats-box" id="statsBox">
+        Total blocks placed: <b id="stBlocks">0</b><br>
+        Perfect drops: <b id="stPerf">0</b><br>
+        Longest combo: <b id="stCombo">0</b><br>
+        Highest tower: <b id="stTower">0</b> floors<br>
+        Best score: <b id="stScore">0</b><br>
+        Games played: <b id="stGames">0</b><br>
+        Golden blocks stacked: <b id="stGold">0</b><br>
+        Fever modes triggered: <b id="stFever">0</b><br>
+        Close calls survived: <b id="stNear">0</b><br>
+        Days played: <b id="stDays">0</b><br>
+        Lifetime coins earned: <b id="stCoins">0</b>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- DAILY -->
+  <div class="screen scrim" id="scr-daily">
+    <div class="menu-wrap">
+      <div class="res-title">DAILY GIFT</div>
+      <div id="dailyStreak" class="subtitle"></div>
+      <div class="dgrid" id="dailyGrid"></div>
+      <div class="shieldrow" id="shieldRow"></div>
+      <button id="btnDailyClaim" class="hbtn primary big"><i class="icw" data-ic="gift"></i>CLAIM</button>
+      <button id="btnDailyClose" class="hbtn">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- WELCOME -->
+  <div class="screen scrim" id="scr-welcome">
+    <div class="menu-wrap">
+      <div class="res-title">WELCOME!</div>
+      <div class="subtitle">Your very first gift — enjoy!</div>
+      <div class="res-box panel r2" style="text-align:center;font-size:18px;line-height:2">
+        <b style="font-size:24px;color:var(--accent)">+100 coins</b><br>
+        <span style="font-size:14px;color:var(--ink2)">
+        Every drop earns coins — perfect drops earn more.<br>
+        Spend coins in the <b>SHOP</b> on fun cosmetics.<br>
+        Come back every day for the <b>DAILY GIFT</b>!<br>
+        Reach new heights to unlock <b>WORLDS</b>.</span>
+      </div>
+      <button id="btnWelcomeOk" class="hbtn primary big"><i class="icw" data-ic="gift"></i>YAY, THANKS!</button>
+    </div>
+  </div>
+
+  <!-- CONFIRM RESET -->
+  <div class="screen scrim" id="scr-confirm">
+    <div class="menu-wrap">
+      <div class="res-title">ERASE EVERYTHING?</div>
+      <div class="subtitle">All coins, cosmetics, worlds and records will be gone forever!</div>
+      <div class="btn-row">
+        <button id="btnResetYes" class="hbtn danger">YES, RESET</button>
+        <button id="btnResetNo" class="hbtn">NO, KEEP IT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</html>
